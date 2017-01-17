@@ -1,10 +1,9 @@
 module App.View exposing (viewHeader, viewBody)
 
 import App.Types exposing (..)
-import Array
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput, onSubmit)
+import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave, onSubmit)
 
 
 viewHeader : Model -> Html Msg
@@ -27,16 +26,7 @@ viewBody model =
         [ class "section" ]
         [ div
             [ class "container" ]
-            [ h1
-                [ class "title" ]
-                [ text "Giphy Search" ]
-            , h2
-                [ class "subtitle" ]
-                [ text "Enter a query to search for GIFs" ]
-            , hr
-                []
-                []
-            , div
+            [ div
                 [ class "columns" ]
                 [ div
                     [ class "column" ]
@@ -64,85 +54,64 @@ viewBody model =
                     [ text "" ]
                 ]
             , div
-                [ class "columns" ]
-                [ div
-                    [ class "column" ]
-                    [ text "" ]
-                , div
-                    [ class "column" ]
-                    [ button
-                        [ class "button"
-                        , onClick Previous
-                        ]
-                        [ text "previous" ]
-                    , button
-                        [ class "button"
-                        , onClick Next
-                        ]
-                        [ text "next" ]
-                    ]
-                , div
-                    [ class "column" ]
-                    [ text "" ]
-                ]
-            , div
-                [ class "columns" ]
-                [ div
-                    [ class "column is-half is-offset-one-quarter" ]
-                    [ div
-                        [ class "box" ]
-                        [ h1
-                            [ class "title is-5" ]
-                            [ text model.query ]
-                        , div
-                            [ class "" ]
-                            [ showGif model.gifs
-                            ]
-                        , div
-                            [ class "" ]
-                            [ div
-                                [ class "media" ]
-                                [ div
-                                    [ class "media-left" ]
-                                    [ figure
-                                        [ class "image"
-                                        , style [ ( "height", "40px" ), ( "width", "40px" ) ]
-                                        ]
-                                        [ img
-                                            [ src "http://bulma.io/images/placeholders/96x96.png", alt "Image" ]
-                                            []
-                                        ]
-                                    ]
-                                , div
-                                    [ class "media-content" ]
-                                    [ p
-                                        [ class "title is-4" ]
-                                        [ text "John Smith" ]
-                                    , p
-                                        [ class "subtitle is-6" ]
-                                        [ text "@johnsmith" ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                [ class "columns is-multiline is-mobile" ]
+                (viewThumbnails model)
+            , viewGif model
             ]
         ]
 
 
-showGif : Gifs -> Html Msg
-showGif { list, current } =
-    case Array.get current list of
+viewThumbnails : Model -> List (Html Msg)
+viewThumbnails model =
+    List.foldr (\gif thumbnails -> (viewThumbnail gif model) :: thumbnails) [] model.gifs
+
+
+viewThumbnail : GIF -> Model -> Html Msg
+viewThumbnail gif model =
+    div
+        [ class "column is-one-quarter" ]
+        [ figure
+            [ class "image is-square grow"
+            , onMouseEnter <| ThumbnailPreviewStart gif
+            , onMouseLeave ThumbnailPreviewEnd
+            , onClick <| Select gif
+            ]
+            [ img
+                [ src <| viewThumbnailUrl gif model ]
+                []
+            ]
+        ]
+
+
+viewThumbnailUrl : GIF -> Model -> String
+viewThumbnailUrl gif model =
+    if Just gif == model.thumbnail then
+        gif.thumbnail_gif_url
+    else
+        gif.thumbnail_url
+
+
+viewGif : Model -> Html Msg
+viewGif model =
+    case model.current of
         Nothing ->
             text ""
 
         Just gif ->
-            figure
-                [ class "image is-4by3" ]
-                [ img
-                    [ src gif.url
-                    , alt "Image"
+            div
+                [ class "modal is-active" ]
+                [ div
+                    [ class "modal-background"
+                    , onClick <| Deselect
                     ]
                     []
+                , div
+                    [ class "modal-content" ]
+                    [ p
+                        [ class "image is-4by3" ]
+                        [ img
+                            [ src gif.gif_url ]
+                            []
+                        ]
+                    ]
                 ]

@@ -1,7 +1,6 @@
 module App.State exposing (init, update, subscriptions)
 
 import App.Types exposing (..)
-import Array
 import Http exposing (request)
 import Json.Decode as JD
 import Json.Decode.Pipeline exposing (decode, required, requiredAt)
@@ -10,8 +9,9 @@ import Json.Decode.Pipeline exposing (decode, required, requiredAt)
 initialModel : Model
 initialModel =
     { query = ""
-    , url = "http://giphy.com/embed/14c0YMK7oEVs0o"
-    , gifs = Gifs Array.empty 0
+    , gifs = []
+    , current = Nothing
+    , thumbnail = Nothing
     }
 
 
@@ -26,57 +26,14 @@ update msg model =
         InputQuery query ->
             ( { model | query = query }, Cmd.none )
 
-        GetRandomGif ->
-            ( model, getRandomGif "waiting" )
-
         Query ->
             if String.isEmpty model.query then
                 ( model, Cmd.none )
             else
                 ( model, queryGifs model.query )
 
-        Next ->
-            let
-                gifs =
-                    model.gifs
-
-                newGifs =
-                    { gifs | current = gifs.current + 1 }
-            in
-                ( { model | gifs = newGifs }, Cmd.none )
-
-        Previous ->
-            let
-                gifs =
-                    model.gifs
-
-                newGifs =
-                    { gifs | current = gifs.current - 1 }
-            in
-                ( { model | gifs = newGifs }, Cmd.none )
-
-        -- ( { model | gifs = getNextGifs model.gifs }, Cmd.none )
-        NewGif (Ok url) ->
-            ( { model | url = url }, Cmd.none )
-
-        NewGif (Err a) ->
-            let
-                _ =
-                    Debug.log "Error" a
-            in
-                ( model, Cmd.none )
-
         NewQueryResults (Ok results) ->
-            let
-                newGifs =
-                    case results.gifs of
-                        head :: tail ->
-                            Gifs (Array.fromList results.gifs) 0
-
-                        [] ->
-                            Gifs Array.empty 0
-            in
-                ( { model | gifs = newGifs }, Cmd.none )
+            ( { model | gifs = results.gifs }, Cmd.none )
 
         NewQueryResults (Err a) ->
             let
@@ -85,28 +42,17 @@ update msg model =
             in
                 ( model, Cmd.none )
 
+        Select gif ->
+            ( { model | current = Just gif }, Cmd.none )
 
+        Deselect ->
+            ( { model | current = Nothing }, Cmd.none )
 
--- getNextGifs : Gifs -> Gifs
--- getNextGifs { previous, current, remaining } =
---     case ( previous, current, remaining ) of
---         ( previous, Just current, head :: tail ) ->
---             Gifs (current :: previous) (Just head) tail
---
---         _ ->
---             Gifs previous current remaining
+        ThumbnailPreviewStart gif ->
+            ( { model | thumbnail = Just gif }, Cmd.none )
 
-
-getRandomGif : String -> Cmd Msg
-getRandomGif topic =
-    let
-        url =
-            "https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=" ++ topic
-
-        request =
-            Http.get url decodeGifUrl
-    in
-        Http.send NewGif request
+        ThumbnailPreviewEnd ->
+            ( { model | thumbnail = Nothing }, Cmd.none )
 
 
 queryGifs : String -> Cmd Msg
@@ -138,6 +84,8 @@ decodeGif =
         |> requiredAt [ "images", "downsized_large", "url" ] JD.string
         |> requiredAt [ "images", "downsized_large", "width" ] JD.string
         |> requiredAt [ "images", "downsized_large", "height" ] JD.string
+        |> requiredAt [ "images", "fixed_width_still", "url" ] JD.string
+        |> requiredAt [ "images", "fixed_width", "url" ] JD.string
 
 
 

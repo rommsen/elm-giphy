@@ -1,4 +1,5 @@
 import "babel-polyfill";
+import "./styles/app.css";
 import "./styles/bulma.css";
 import "font-awesome-webpack";
 

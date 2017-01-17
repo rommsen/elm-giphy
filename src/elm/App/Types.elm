@@ -1,20 +1,22 @@
 module App.Types exposing (..)
 
-import Array exposing (Array)
 import Http
 
 
 type alias Model =
     { query : String
-    , url : String
-    , gifs : Gifs
+    , gifs : List GIF
+    , current : Maybe GIF
+    , thumbnail : Maybe GIF
     }
 
 
 type alias GIF =
-    { url : String
+    { gif_url : String
     , width : String
     , height : String
+    , thumbnail_url : String
+    , thumbnail_gif_url : String
     }
 
 
@@ -22,17 +24,11 @@ type alias QueryResults =
     { gifs : List GIF }
 
 
-type alias Gifs =
-    { list : Array GIF
-    , current : Int
-    }
-
-
 type Msg
     = InputQuery String
-    | GetRandomGif
     | Query
-    | Next
-    | Previous
-    | NewGif (Result Http.Error String)
+    | ThumbnailPreviewStart GIF
+    | ThumbnailPreviewEnd
+    | Select GIF
+    | Deselect
     | NewQueryResults (Result Http.Error QueryResults)
