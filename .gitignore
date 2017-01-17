@@ -6,6 +6,7 @@ elm-stuff/
 repl-temp-*
 
 .idea
+.directory
 
 /node_modules/
 /dist/
