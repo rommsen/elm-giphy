@@ -24,7 +24,8 @@ viewBody : Model -> Html Msg
 viewBody model =
     section
         [ class "section" ]
-        [ div
+        [ viewGif model
+        , div
             [ class "container" ]
             [ div
                 [ class "columns" ]
@@ -39,6 +40,7 @@ viewBody model =
                                 [ class "input"
                                 , placeholder "What are you looking for?"
                                 , onInput InputQuery
+                                , value model.query
                                 ]
                                 []
                             , button
@@ -56,7 +58,7 @@ viewBody model =
             , div
                 [ class "columns is-multiline is-mobile" ]
                 (viewThumbnails model)
-            , viewGif model
+            , viewLoadMoreButton model
             ]
         ]
 
@@ -115,3 +117,21 @@ viewGif model =
                         ]
                     ]
                 ]
+
+
+viewLoadMoreButton : Model -> Html Msg
+viewLoadMoreButton model =
+    if List.isEmpty model.gifs then
+        text ""
+    else
+        div
+            [ class "columns" ]
+            [ div
+                [ class "column has-text-centered" ]
+                [ button
+                    [ class "button  is-primary is-large is-inverted"
+                    , onClick AdditionalQuery
+                    ]
+                    [ text "load more..." ]
+                ]
+            ]

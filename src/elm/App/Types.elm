@@ -5,6 +5,8 @@ import Http
 
 type alias Model =
     { query : String
+    , queryOffset : Int
+    , queryLimit : Int
     , gifs : List GIF
     , current : Maybe GIF
     , thumbnail : Maybe GIF
@@ -31,4 +33,6 @@ type Msg
     | ThumbnailPreviewEnd
     | Select GIF
     | Deselect
+    | AdditionalQuery
     | NewQueryResults (Result Http.Error QueryResults)
+    | AdditionalQueryResults (Result Http.Error QueryResults)

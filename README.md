@@ -2,9 +2,11 @@
 I build this project as a learning project to learn Elm.
 I am more than happy for any reviews or ideas where and how to improve.
 
-
 ## What is it doing?
-Using the giphy search api to show gifs
+Using the giphy search api to show gifs (including preview and modal)
+
+## Thats cool, can I try it online?
+Yes please: https://dist-ipztogjbjr.now.sh/ (thats a weird https://zeit.co/now link)
 
 
 ## What is it based on?

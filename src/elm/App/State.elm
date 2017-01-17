@@ -9,6 +9,8 @@ import Json.Decode.Pipeline exposing (decode, required, requiredAt)
 initialModel : Model
 initialModel =
     { query = ""
+    , queryOffset = 0
+    , queryLimit = 25
     , gifs = []
     , current = Nothing
     , thumbnail = Nothing
@@ -27,15 +29,36 @@ update msg model =
             ( { model | query = query }, Cmd.none )
 
         Query ->
-            if String.isEmpty model.query then
-                ( model, Cmd.none )
-            else
-                ( model, queryGifs model.query )
+            let
+                newModel =
+                    if String.isEmpty model.query then
+                        { model | query = "idiot" }
+                    else
+                        model
+            in
+                ( newModel, queryGifs newModel NewQueryResults )
+
+        AdditionalQuery ->
+            let
+                newModel =
+                    { model | queryOffset = model.queryOffset + model.queryLimit }
+            in
+                ( newModel, queryGifs newModel AdditionalQueryResults )
 
         NewQueryResults (Ok results) ->
             ( { model | gifs = results.gifs }, Cmd.none )
 
         NewQueryResults (Err a) ->
+            let
+                _ =
+                    Debug.log "Error" a
+            in
+                ( model, Cmd.none )
+
+        AdditionalQueryResults (Ok results) ->
+            ( { model | gifs = model.gifs ++ results.gifs }, Cmd.none )
+
+        AdditionalQueryResults (Err a) ->
             let
                 _ =
                     Debug.log "Error" a
@@ -55,16 +78,25 @@ update msg model =
             ( { model | thumbnail = Nothing }, Cmd.none )
 
 
-queryGifs : String -> Cmd Msg
-queryGifs string =
+
+-- queryGifs : Model -> Result Http.Error Msg -> Cmd Msg
+
+
+queryGifs { query, queryOffset, queryLimit } msg =
     let
         url =
-            "https://api.giphy.com/v1/gifs/search?limit=100&api_key=dc6zaTOxFJmzC&q=" ++ string
+            "https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC"
+                ++ "&limit="
+                ++ toString queryLimit
+                ++ "&offset="
+                ++ toString queryOffset
+                ++ "&q="
+                ++ query
 
         request =
             Http.get url decodeResults
     in
-        Http.send NewQueryResults request
+        Http.send msg request
 
 
 decodeGifUrl : JD.Decoder String
