@@ -1,6 +1,7 @@
 module App.State exposing (init, update, subscriptions)
 
 import App.Types exposing (..)
+import Array
 import Http exposing (request)
 import Json.Decode as JD
 import Json.Decode.Pipeline exposing (decode, required, requiredAt)
@@ -10,7 +11,7 @@ initialModel : Model
 initialModel =
     { query = ""
     , url = "http://giphy.com/embed/14c0YMK7oEVs0o"
-    , gifs = Gifs [] Nothing []
+    , gifs = Gifs Array.empty 0
     }
 
 
@@ -35,8 +36,26 @@ update msg model =
                 ( model, queryGifs model.query )
 
         Next ->
-            ( { model | gifs = getNextGifs model.gifs }, Cmd.none )
+            let
+                gifs =
+                    model.gifs
 
+                newGifs =
+                    { gifs | current = gifs.current + 1 }
+            in
+                ( { model | gifs = newGifs }, Cmd.none )
+
+        Previous ->
+            let
+                gifs =
+                    model.gifs
+
+                newGifs =
+                    { gifs | current = gifs.current - 1 }
+            in
+                ( { model | gifs = newGifs }, Cmd.none )
+
+        -- ( { model | gifs = getNextGifs model.gifs }, Cmd.none )
         NewGif (Ok url) ->
             ( { model | url = url }, Cmd.none )
 
@@ -52,10 +71,10 @@ update msg model =
                 newGifs =
                     case results.gifs of
                         head :: tail ->
-                            Gifs [] (Just head) tail
+                            Gifs (Array.fromList results.gifs) 0
 
                         [] ->
-                            Gifs [] Nothing []
+                            Gifs Array.empty 0
             in
                 ( { model | gifs = newGifs }, Cmd.none )
 
@@ -67,14 +86,15 @@ update msg model =
                 ( model, Cmd.none )
 
 
-getNextGifs : Gifs -> Gifs
-getNextGifs { previous, current, remaining } =
-    case ( previous, current, remaining ) of
-        ( previous, Just current, head :: tail ) ->
-            Gifs (current :: previous) (Just head) tail
 
-        _ ->
-            Gifs previous current remaining
+-- getNextGifs : Gifs -> Gifs
+-- getNextGifs { previous, current, remaining } =
+--     case ( previous, current, remaining ) of
+--         ( previous, Just current, head :: tail ) ->
+--             Gifs (current :: previous) (Just head) tail
+--
+--         _ ->
+--             Gifs previous current remaining
 
 
 getRandomGif : String -> Cmd Msg

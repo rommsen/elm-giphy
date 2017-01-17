@@ -1,6 +1,7 @@
 module App.View exposing (viewHeader, viewBody)
 
 import App.Types exposing (..)
+import Array
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -70,7 +71,9 @@ viewBody model =
                 , div
                     [ class "column" ]
                     [ button
-                        [ class "button" ]
+                        [ class "button"
+                        , onClick Previous
+                        ]
                         [ text "previous" ]
                     , button
                         [ class "button"
@@ -93,7 +96,7 @@ viewBody model =
                             [ text model.query ]
                         , div
                             [ class "" ]
-                            [ showGif model.gifs.current
+                            [ showGif model.gifs
                             ]
                         , div
                             [ class "" ]
@@ -128,9 +131,9 @@ viewBody model =
         ]
 
 
-showGif : Maybe GIF -> Html Msg
-showGif gif =
-    case gif of
+showGif : Gifs -> Html Msg
+showGif { list, current } =
+    case Array.get current list of
         Nothing ->
             text ""
 
@@ -138,6 +141,8 @@ showGif gif =
             figure
                 [ class "image is-4by3" ]
                 [ img
-                    [ src gif.url, alt "Image" ]
+                    [ src gif.url
+                    , alt "Image"
+                    ]
                     []
                 ]

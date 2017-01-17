@@ -1,5 +1,6 @@
 module App.Types exposing (..)
 
+import Array exposing (Array)
 import Http
 
 
@@ -22,9 +23,8 @@ type alias QueryResults =
 
 
 type alias Gifs =
-    { previous : List GIF
-    , current : Maybe GIF
-    , remaining : List GIF
+    { list : Array GIF
+    , current : Int
     }
 
 
@@ -33,5 +33,6 @@ type Msg
     | GetRandomGif
     | Query
     | Next
+    | Previous
     | NewGif (Result Http.Error String)
     | NewQueryResults (Result Http.Error QueryResults)
